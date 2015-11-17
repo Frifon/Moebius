@@ -49,12 +49,12 @@
 
         <div id="quests">
             <ul>
-                <li>Москва
+                <li id="dir_1">Москва
                     <ul>
-                        <li>Новые квесты
+                        <li id="dir_1_1">Новые квесты
                             <ul>
-                                <li data-jstree='{"icon":"{{url_for("static", filename="img/star_red.png")}}"}'>Вокруг МГУ за 80 дней</li>
-                                <li data-jstree='{"icon":"{{url_for("static", filename="img/star_green.png")}}"}'>Старбакс на Арбате</li>
+                                <li data-jstree='{"icon":"{{url_for("static", filename="img/star_red.png")}}"}' id="1">Вокруг МГУ за 80 дней</li>
+                                <li data-jstree='{"icon":"{{url_for("static", filename="img/star_green.png")}}"}' id="333">Старбакс на Арбате</li>
                             </ul>
                         </li>
                     </ul>
@@ -69,10 +69,64 @@
         <script src="{{url_for('static', filename='js/jstree.min.js')}}"></script>
         
         <script type="text/javascript">
-            $('#quests').jstree();
-            $('#quests').on("changed.jstree", function (e, data) {
-                console.log(data.selected);
+            $('#quests').jstree(
+                {
+                    'contextmenu' : {
+                        'items' : customMenu
+                    },
+                    'plugins' : ['contextmenu']
+                }
+            );
+            $('#quests').bind("dblclick.jstree", function (event) {
+                var node = $(event.target).closest("li");
+                var data = node.data("jstree");
+                if (data) {
+                    changeQuest(node[0].id);
+                }
             });
+
+            function customMenu(node)
+            {
+                var items_dir = {
+                    'add_quest' : {
+                        'label' : 'Добавить квест',
+                        'action' : function () { addQuest(node) }
+                    },
+                    'add_dir' : {
+                        'label' : 'Добавить папку',
+                        'action' : function () { addDir(node) }
+                    },
+                };
+
+                var items_quest = {
+                    'change' : {
+                        'label' : 'Изменить',
+                        'action' : function () { changeQuest(node.id) }
+                    },
+                };
+
+                if (node.id.indexOf("dir") !== -1) {
+                    return items_dir;
+                } else {
+                    return items_quest;
+                }
+            }
+
+            function changeQuest(id)
+            {
+                alert("Редактирование квеста " + id.toString());
+            }
+
+            function addQuest(node)
+            {
+                alert("Добавление квеста в папку " + node.text);
+            }
+
+            function addDir(node)
+            {
+                alert("Добавление папки в папку " + node.text);
+            }
+
         </script>
     </body>
 </html>

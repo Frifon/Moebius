@@ -21,69 +21,93 @@
     </head>
     <body>
     
+        {% include 'navbar.html' %}
+        <!-- {% include 'add_quest.html' %} -->
 
-        <nav class="navbar navbar-inverse">
-            <div class="container-fluid">
-                <!-- Brand and toggle get grouped for better mobile display -->
-                <div class="navbar-header">
-                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-                        <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="navbar-brand" href="#">Moebius</a>
-                </div>
+        <form id="add_folder" style="padding:20px;display:none;" action="api/quests/add_folder" method="post">
+            Название папки:<br>
+            <input type="text" id="add_folder_name" name="add_folder_name">
+            <br>
+            В папку:<br>
+            <input type="text" id="add_folder_to" name="add_folder_to">
+            <input type="hidden" id="add_folder_to_id" name="add_folder_to_id" value="">
+            <br>
+            <input type="submit" value="Добавить">
+        </form>
 
-                <!-- Collect the nav links, forms, and other content for toggling -->
-                <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <ul class="nav navbar-nav">
-                        <li><a href="#">Квесты</a></li>
-                        <li><a href="#">Пользователи</a></li>
-                        <li><a href="#">Ачивки</a></li>
-                        <li><a href="#">Ла-ла</a></li>
-                    </ul>
-                </div><!-- /.navbar-collapse -->
-            </div><!-- /.container-fluid -->
-        </nav>
-
-        <div id="quests">
-            <ul>
-                <li id="dir_1">Москва
-                    <ul>
-                        <li id="dir_1_1">Новые квесты
-                            <ul>
-                                <li data-jstree='{"icon":"{{url_for("static", filename="img/star_red.png")}}"}' id="1">Вокруг МГУ за 80 дней</li>
-                                <li data-jstree='{"icon":"{{url_for("static", filename="img/star_green.png")}}"}' id="333">Старбакс на Арбате</li>
-                            </ul>
-                        </li>
-                    </ul>
-                </li>
-            </ul>
-        </div>
+        <div id="quests"></div>
 
         <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
         <!-- Include all compiled plugins (below), or include individual files as needed -->
         <script src="{{url_for('static', filename='js/bootstrap.min.js')}}"></script>
         <script src="{{url_for('static', filename='js/jstree.min.js')}}"></script>
-        
+
         <script type="text/javascript">
-            $('#quests').jstree(
-                {
-                    'contextmenu' : {
-                        'items' : customMenu
-                    },
-                    'plugins' : ['contextmenu']
+            var tree_res = "";
+            var tree_data;
+
+            function build_tree(node) {
+                var children = tree_data[node][1];
+                console.log(node);
+                var res = "";
+                if (node != 1) {
+                    res += '<li id="dir_' + node.toString() + '">' + tree_data[node][0] + "\n";
                 }
-            );
-            $('#quests').bind("dblclick.jstree", function (event) {
-                var node = $(event.target).closest("li");
-                var data = node.data("jstree");
-                if (data) {
-                    changeQuest(node[0].id);
+                if (children.length) {
+                    res += "<ul>\n";
                 }
-            });
+                for (var i = 0; i < children.length; i++) {
+                    if (children[i][2] == 1) { // quest
+                        res += '<li data-jstree=\'{"icon":"{{url_for("static", filename="img/star_red.png")}}"}\' id="' + children[i][0] + '">' + children[i][1] + '</li>\n'
+                    } else {
+                        res += build_tree(children[i][0]);
+                    }
+                }
+                if (children.length) {
+                    res += "</ul>\n";
+                }
+                if (node != 1) {
+                    res += '</li>\n';
+                }   
+                return res;
+            }
+
+            function build_tree_js() {
+                $('#quests').jstree(
+                    {
+                        'contextmenu' : {
+                            'items' : customMenu
+                        },
+                        'plugins' : ['contextmenu']
+                    }
+                );
+                $('#quests').bind("dblclick.jstree", function (event) {
+                    var node = $(event.target).closest("li");
+                    var data = node.data("jstree");
+                    if (data) {
+                        changeQuest(node[0].id);
+                    }
+                });
+            }
+
+            var success_quests_get = function(data) {
+                tree_data = data.data;
+                console.log(tree_data);
+                tree_res = build_tree(1);
+                document.getElementById("quests").innerHTML = tree_res;
+                console.log(tree_res);
+                build_tree_js();
+            };
+            
+            var get_tree = function() {
+                $.get( "api/quests/all_quests", {}, success_quests_get );
+            };
+
+            get_tree();
+
+            // $("#make_quest").hide();
+            // make_graph(); // REMOVE
 
             function customMenu(node)
             {
@@ -119,13 +143,38 @@
 
             function addQuest(node)
             {
-                alert("Добавление квеста в папку " + node.text);
+                alert("Добавление квеста в папку " + node.id);
             }
 
             function addDir(node)
             {
-                alert("Добавление папки в папку " + node.text);
+                // alert("Добавление папки в папку " + node.id);
+                document.getElementById("add_folder").style.display = "block";
+                document.getElementById("add_folder_to").value = node.text;
+                document.getElementById("add_folder_to_id").value = node.id;
             }
+
+            $("#add_folder").submit(function(e) {
+
+                url = "/api/quests/add_folder";
+
+                $.ajax({
+                       type: "POST",
+                       url: url,
+                       data: $("#add_folder").serialize(),
+                       success: function(data)
+                       {
+                            console.log(data);
+                            window.location = '/';
+                       },
+                       error: function(data)
+                       {
+                            console.log(data);
+                       }
+                     });
+
+                e.preventDefault();
+            });
 
         </script>
     </body>

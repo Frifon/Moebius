@@ -8,17 +8,12 @@ api_quests = Blueprint('api_quests', __name__)
 def all_quests():
     quests = Quest.query.all()
     folders = Folder.query.all()
-    for f in folders:
-        print(f.children)
-    print ("Quests:", quests)
-    print ("Folders:", folders)
     
     data = {}
     for f in folders:
         data[f.id] = [f.name, [[c.id, c.name, 0] for c in f.children]]
     for q in quests:
         data[q.parent_folder][1].append([q.id, q.name, 1])
-    print(data)
     return make_response(
         jsonify({
             'code': 0,

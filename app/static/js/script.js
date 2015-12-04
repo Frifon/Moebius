@@ -199,8 +199,8 @@ $(window).resize(function(){
    sys.renderer.resize();
 }).resize();
 
-sys.addNode("+", {"qu-name": "nope"});
-sys.addNode("-", {"qu-name": "yep"});
+sys.addNode("+", {"qu-name": "+"});
+sys.addNode("-", {"qu-name": "+"});
 
 function addNode(node) {
     resetForm($('#add_question'));

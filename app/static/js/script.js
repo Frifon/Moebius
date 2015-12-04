@@ -200,7 +200,7 @@ $(window).resize(function(){
 }).resize();
 
 sys.addNode("+", {"qu-name": "+"});
-sys.addNode("-", {"qu-name": "+"});
+sys.addNode("-", {"qu-name": "-"});
 
 function addNode(node) {
     resetForm($('#add_question'));

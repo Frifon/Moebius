@@ -17,12 +17,46 @@
             <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
         <![endif]-->
 
+        <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+        <script src="{{url_for('static', filename='arbor-v0.92/lib/arbor.js')}}"></script>
+        <link rel="stylesheet" href="{{url_for('static', filename='css/style.css')}}"/>
+
         <link rel="stylesheet" href="{{url_for('static', filename='css/style.min.css')}}" />
     </head>
     <body>
     
         {% include 'navbar.html' %}
         <!-- {% include 'add_quest.html' %} -->
+        <div id="viewport-wrapper">
+            <canvas id="viewport" width="800" height="600"></canvas>
+        </div>
+        <div id="actions">
+            <br>
+            <button onclick="addNode()">Добавить вопрос</button>
+            <button id="graph-mode" onclick="sys.renderer.dragNodesMode = !sys.renderer.dragNodesMode; document.getElementById('graph-mode').innerHTML=sys.renderer.dragNodesMode?'Перемещение':'Добавление ребер';">Перемещение</button>
+            <div id="edit-question" style="display:none;">
+                <form id="add_question">
+                    <input type="hidden" id="qu-id" name="qu-id" value="">
+                    
+                    <br>Название: <input id="qu-name" name="qu-name"/>
+                    <br>Ответ: <input type="radio" name="qu-answer" id="qu-answer-text" name="qu-answer-text" value="text" checked>Текст <input type="radio" name="qu-answer" id="qu-answer-buttons" name="qu-answer-buttons" value="buttons">Кнопки
+                    <br>Вопрос:<br>
+                    <textarea id="qu-question" name="qu-question" rows="4" cols="50"></textarea>
+                    <br>Подсказки:<br>
+                    <br>Адрес:<br>
+                    <textarea id="qu-hint-address" name="qu-hint-address" rows="4" cols="50"></textarea>
+                    <br>Полное решение:<br>
+                    <textarea id="qu-hint-full-solution" name="qu-hint-full-solution" rows="4" cols="50"></textarea>
+                    <br>Мини подсказки:<br>
+                    <textarea id="qu-hint-part-solution" name="qu-hint-part-solution" rows="4" cols="50">1.&#13;&#10;2.&#13;&#10;3.</textarea>
+                    <br><br>
+                    <button id="save-name" name="save-name">Save</button>
+                    <button onclick="if(nodeBeingEdited !== null) {console.log(123); sys.pruneNode(nodeBeingEdited); nodeBeingEdited = null; } return false;">Remove</button>
+                </form>
+            </div>
+        </div>
+
+        <script src="{{url_for('static', filename='js/script.js')}}"></script>
 
         <form id="add_folder" style="padding:20px;display:none;" action="api/quests/add_folder" method="post">
             Название папки:<br>
